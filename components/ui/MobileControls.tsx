@@ -7,7 +7,6 @@ export function MobileControls() {
   const [isTouch, setIsTouch] = useState(false);
   const setMove = useInputStore((state) => state.setMove);
   const setLook = useInputStore((state) => state.setLook);
-  const setInteracting = useInputStore((state) => state.setInteracting);
 
   useEffect(() => {
     const checkTouch = () => {
@@ -47,14 +46,14 @@ export function MobileControls() {
       // So negative screen Y (up) should map to positive store Y.
       // clampedY is -1 (top) to 1 (bottom).
       // So store Y = -clampedY.
-      setMove(clampedX, -clampedY); 
+      setMove(clampedX, -clampedY, 0); 
     } else {
       setLook(clampedX, clampedY);
     }
   };
 
   const handleEnd = (type: 'move' | 'look') => {
-    if (type === 'move') setMove(0, 0);
+    if (type === 'move') setMove(0, 0, 0);
     if (type === 'look') setLook(0, 0);
   };
 
@@ -66,8 +65,8 @@ export function MobileControls() {
       <div className="absolute bottom-24 right-8 pointer-events-auto">
          <button 
            className="flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-lg backdrop-blur-md border border-zinc-200/50 text-zinc-800 font-bold transition-transform active:scale-95 active:bg-white select-none touch-none"
-           onTouchStart={(e) => { e.preventDefault(); setInteracting(true); }}
-           onTouchEnd={(e) => { e.preventDefault(); setInteracting(false); }}
+           onTouchStart={(e) => { e.preventDefault(); }}
+           onTouchEnd={(e) => { e.preventDefault(); }}
            onContextMenu={(e) => e.preventDefault()}
          >
            E

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import { Interactable } from '../interaction/Interactable';
-import { useInteractionStore } from '@/store/useInteractionStore';
+import { useSceneStore } from '@/store/useSceneStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Vector3 } from 'three';
 
@@ -43,8 +43,8 @@ function TriggerCube() {
 function GrabSphere() {
   const api = useRef<RapierRigidBody>(null);
   const id = "grab-sphere";
-  const heldId = useInteractionStore((state) => state.heldId);
-  const setHeld = useInteractionStore((state) => state.setHeld);
+  const heldId = useSceneStore((state) => state.heldId);
+  const setHeld = useSceneStore((state) => state.setHeld);
   const isHeld = heldId === id;
   
   const { camera } = useThree();

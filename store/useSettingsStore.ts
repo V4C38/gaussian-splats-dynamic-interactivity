@@ -22,6 +22,7 @@ interface RenderSettings {
   splatAlphaTest: number;
   splatAlphaHash: boolean;
   splatChunkSize: number;
+  audioEnabled: boolean;
 }
 
 interface SettingsState {
@@ -45,6 +46,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     splatAlphaTest: 0.1,
     splatAlphaHash: false,
     splatChunkSize: 25000,
+    audioEnabled: true,
   },
   metrics: {
     fps: 0,

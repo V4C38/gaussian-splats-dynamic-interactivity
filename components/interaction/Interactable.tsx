@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useRef, cloneElement, Children, isValidElement, useState } from 'react';
-import { useInteractionStore } from '@/store/useInteractionStore';
+import { useSceneStore } from '@/store/useSceneStore';
 import { InteractionType, IInteractionAction } from '@/types/interaction';
 import { Group } from 'three';
 import { Html, Outlines } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFrame } from '@react-three/fiber';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 interface InteractableProps {
   id: string;
@@ -29,19 +30,61 @@ export function Interactable({
   onHoverEnd,
   position 
 }: InteractableProps) {
-  const register = useInteractionStore((state) => state.registerInteractive);
-  const unregister = useInteractionStore((state) => state.unregisterInteractive);
-  const hoveredId = useInteractionStore((state) => state.hoveredId);
+  const register = useSceneStore((state) => state.registerInteractive);
+  const unregister = useSceneStore((state) => state.unregisterInteractive);
+  const hoveredId = useSceneStore((state) => state.hoveredId);
   const groupRef = useRef<Group>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState<{x:number;y:number}>({ x: 0, y: 0 });
   const [isTouch, setIsTouch] = useState(false);
+  const audioEnabled = useSettingsStore((s) => s.settings.audioEnabled);
   
   const isHovered = hoveredId === id;
 
   useEffect(() => {
     setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
   }, []);
+
+  // Spawn animation + optional sound
+  useEffect(() => {
+    const g = groupRef.current;
+    if (!g) return;
+    // Scale-in animation
+    let start: number | null = null;
+    const durationMs = 180;
+    const from = 0.001;
+    const to = 1.0;
+    const step = (t: number) => {
+      if (start === null) start = t;
+      const p = Math.min(1, (t - start) / durationMs);
+      const s = from + (to - from) * p;
+      g.scale.setScalar(s);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    g.scale.setScalar(from);
+    const rafId = requestAnimationFrame(step);
+
+    // Sound
+    if (audioEnabled) {
+      try {
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.value = 0.05;
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+        osc.stop(ctx.currentTime + 0.16);
+        osc.onended = () => ctx.close();
+      } catch {
+        // Ignore audio errors (autoplay policies, etc.)
+      }
+    }
+
+    return () => cancelAnimationFrame(rafId);
+  }, [audioEnabled]);
 
   useEffect(() => {
     register(id, { 

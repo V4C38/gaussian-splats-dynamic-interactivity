@@ -8,6 +8,7 @@ import { InteractionManager } from '../interaction/InteractionManager';
 import { DemoWorld } from './DemoWorld';
 import { Suspense, useEffect, useRef } from 'react';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { useSceneStore } from '@/store/useSceneStore';
 import * as THREE from 'three';
 
 function WireframeEffect() {
@@ -72,6 +73,8 @@ function MetricsCollector() {
 }
 
 export function Scene() {
+  const activeSceneId = useSceneStore((s) => s.activeSceneId);
+  const shouldShowDemoWorld = activeSceneId === 'demo-interaction';
   return (
     <div className="h-screen w-screen bg-[#fafafa]">
       <Canvas
@@ -94,7 +97,7 @@ export function Scene() {
                 <InteractionManager />
                 <SplatViewer />
                 <Player />
-                <DemoWorld />
+                {shouldShowDemoWorld && <DemoWorld />}
             </Physics>
         </Suspense>
         

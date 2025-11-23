@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useInteractionStore } from '@/store/useInteractionStore';
-import { useSplatStore } from '@/store/useSplatStore';
-import { useSettingsStore } from '@/store/useSettingsStore';
 import { useSceneStore } from '@/store/useSceneStore';
-import { ArrowLeft, Settings, X, Grid, Move3D, Activity, Box } from 'lucide-react';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { ArrowLeft, Settings, X, Grid, Move3D, Activity, Box, Volume2 } from 'lucide-react';
 import { SettingsPanel } from './SettingsPanel';
 import { useRouter } from 'next/navigation';
 
@@ -35,17 +33,14 @@ function PerformanceOverlay() {
 }
 
 export function HUD() {
-  const hoveredId = useInteractionStore((state) => state.hoveredId);
-  const url = useSplatStore((state) => state.url);
-  const setUrl = useSplatStore((state) => state.setUrl);
-  const resetSplat = useSplatStore((state) => state.reset);
+  const hoveredId = useSceneStore((state) => state.hoveredId);
+  const activeSceneId = useSceneStore((state) => state.activeSceneId);
   const setActiveScene = useSceneStore((state) => state.setActiveScene);
   const router = useRouter();
   
   const { isMenuOpen, toggleMenu, settings, updateSettings } = useSettingsStore();
 
   const handleBack = () => {
-    resetSplat();
     setActiveScene(null);
     router.push('/');
   };
@@ -84,7 +79,7 @@ export function HUD() {
       <PerformanceOverlay />
 
       {/* Top Bar (Back on left, Tool toggles + Settings on right) */}
-      {url && (
+      {activeSceneId && (
         <div className="pointer-events-auto absolute top-0 left-0 right-0 z-50 flex flex-wrap items-start justify-between gap-4 p-4 md:p-6">
           {!isMenuOpen ? (
              <button
@@ -143,6 +138,14 @@ export function HUD() {
               label="Performance Stats"
             >
               <Activity size={18} />
+            </ToolButton>
+            {/* Audio Toggle */}
+            <ToolButton
+              active={settings.audioEnabled}
+              onClick={() => updateSettings({ audioEnabled: !settings.audioEnabled })}
+              label="Audio"
+            >
+              <Volume2 size={18} />
             </ToolButton>
 
             {/* Settings/Burger */}

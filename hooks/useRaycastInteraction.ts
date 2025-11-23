@@ -3,13 +3,13 @@
 import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Raycaster, Vector2 } from 'three';
-import { useInteractionStore } from '@/store/useInteractionStore';
+import { useSceneStore } from '@/store/useSceneStore';
 import { useInputStore } from '@/store/useInputStore';
 
 export function useRaycastInteraction() {
   const { camera, scene } = useThree();
-  const setHovered = useInteractionStore((state) => state.setHovered);
-  const getInteractive = useInteractionStore((state) => state.getInteractive);
+  const setHovered = useSceneStore((state) => state.setHovered);
+  const getInteractive = useSceneStore((state) => state.getInteractive);
   
   useFrame(() => {
     const raycaster = new Raycaster();
@@ -31,7 +31,7 @@ export function useRaycastInteraction() {
       if (foundId) break;
     }
     
-    const currentHover = useInteractionStore.getState().hoveredId;
+    const currentHover = useSceneStore.getState().hoveredId;
     if (currentHover !== foundId) {
       if (currentHover) {
         getInteractive(currentHover)?.onHoverEnd?.();
@@ -46,7 +46,7 @@ export function useRaycastInteraction() {
   // Handle Input Events via Store Subscription
   useEffect(() => {
     const unsub = useInputStore.subscribe((state, prevState) => {
-      const hoveredId = useInteractionStore.getState().hoveredId;
+      const hoveredId = useSceneStore.getState().hoveredId;
       if (!hoveredId) return;
 
       const interactive = getInteractive(hoveredId);

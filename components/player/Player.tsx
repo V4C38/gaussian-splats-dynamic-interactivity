@@ -5,7 +5,7 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { RigidBody, RapierRigidBody, CapsuleCollider } from '@react-three/rapier';
 import { Vector3, Euler } from 'three';
 import { useInputStore } from '@/store/useInputStore';
-import { useSplatStore } from '@/store/useSplatStore';
+import { useSceneStore } from '@/store/useSceneStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 
 const BASE_SPEED = 5;
@@ -18,6 +18,7 @@ export function Player() {
   const moveSpeed = useSettingsStore((state) => state.settings.moveSpeed);
   
   const isMouseDown = useRef(false);
+  const lastMouse = useRef<{ x: number; y: number } | null>(null);
   
   useEffect(() => {
     const canvas = gl.domElement;
@@ -25,25 +26,33 @@ export function Player() {
     const onMouseDown = (e: MouseEvent) => {
       if (e.button === 0) {
         // Skip pointer lock if user is dragging gizmo
-        if (useSplatStore.getState().isDraggingGizmo) return;
+        if (useSceneStore.getState().isDraggingGizmo) return;
         isMouseDown.current = true;
-        canvas.requestPointerLock();
+        lastMouse.current = { x: e.clientX, y: e.clientY };
       }
     };
     
     const onMouseUp = () => {
       isMouseDown.current = false;
-      document.exitPointerLock();
+      lastMouse.current = null;
     };
     
     const onMouseMove = (e: MouseEvent) => {
       if (!isMouseDown.current) return;
-      
+
+      if (!lastMouse.current) {
+        lastMouse.current = { x: e.clientX, y: e.clientY };
+        return;
+      }
+      const dx = e.clientX - lastMouse.current.x;
+      const dy = e.clientY - lastMouse.current.y;
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+
       const euler = new Euler(0, 0, 0, 'YXZ');
       euler.setFromQuaternion(camera.quaternion);
       
-      euler.y -= e.movementX * MOUSE_SENSITIVITY;
-      euler.x -= e.movementY * MOUSE_SENSITIVITY;
+      euler.y -= dx * MOUSE_SENSITIVITY;
+      euler.x -= dy * MOUSE_SENSITIVITY;
       euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
       euler.z = 0;
       
